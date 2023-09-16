@@ -75,10 +75,14 @@ def get_movie_details(movie_title, movies_df):
         formatted_genres = "N/A"
         st.warning(f"Error processing genres for '{movie_title}': {str(e)}")
     
-    # Make sure to access columns that exist in the DataFrame
-    selected_columns = ['title', 'original_language', 'popularity', 'release_date']
-    movie_details = movie[selected_columns]
-    movie_details['genres'] = formatted_genres
+    # Prepare a dictionary with movie details
+    movie_details = {
+        'Title': movie_title,
+        'Genres': formatted_genres,
+        'Original Language': movie['original_language'].values[0],
+        'Popularity': movie['popularity'].values[0],
+        'Release Date': movie['release_date'].values[0],
+    }
     
     return movie_details
 
