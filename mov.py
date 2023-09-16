@@ -8,8 +8,11 @@ import json
 movies_df = pd.read_csv("tmdb_5000_movies.csv")
 
 def extract_genre_names(genre_data):
-    genre_list = json.loads(genre_data.replace("'", "\""))
-    return [genre['name'] for genre in genre_list]
+    try:
+        genre_list = json.loads(genre_data.replace("'", "\""))
+        return [genre['name'] for genre in genre_list]
+    except (json.JSONDecodeError, TypeError):
+        return []
 
 # Convert the 'genres' column to list of genre names
 movies_df['genres'] = movies_df['genres'].apply(extract_genre_names)
