@@ -57,34 +57,15 @@ def get_user_history(user_id):
 
 def get_movie_details(movie_title, movies_df):
     # Use case-insensitive comparison and strip extra spaces
-    movie_title = movie_title.strip().lower()
-    movie = movies_df[movies_df['title'].str.strip().str.lower() == movie_title]
-
-    if movie.empty:
-        return None
-
-    genre_data = movie['genres'].values[0]
-
-    if not genre_data:
-        return None
-
-    try:
+    movie = movies_df[movies_df['title'].str.strip().str.lower() == movie_title.strip().lower()]
+    
+    if not movie.empty:
+        genre_data = eval(movie['genres'].values[0])
         genres = extract_genre_names(genre_data)
         formatted_genres = ', '.join(genres)
-    except Exception as e:
-        formatted_genres = "N/A"
-        st.warning(f"Error processing genres for '{movie_title}': {str(e)}")
-
-    # Prepare a dictionary with movie details
-    movie_details = {
-        'Title': movie_title,
-        'Genres': formatted_genres,
-        'Original Language': movie['original_language'].values[0],
-        'Popularity': movie['popularity'].values[0],
-        'Release Date': movie['release_date'].values[0],
-    }
-
-    return movie_details
+        return movie[['title', formatted_genres, 'original_language', 'popularity', 'release_date']]
+    else:
+        return None
 
 def get_movie_details(movie_title, movies_df):
     # Use case-insensitive comparison and strip extra spaces
