@@ -94,11 +94,11 @@ def get_movie_details(movie_title, movies_df):
     try:
         genres = extract_genre_names(genre_data)
         formatted_genres = ', '.join(genres)
-    except (json.JSONDecodeError, TypeError):
+    except Exception as e:
         formatted_genres = "N/A"
+        st.warning(f"Error processing genres for '{movie_title}': {str(e)}")
     
     return movie[['title', formatted_genres, 'original_language', 'popularity', 'release_date']]
-
 
 # Create a Streamlit web app
 st.title("Movie Recommendation System")
