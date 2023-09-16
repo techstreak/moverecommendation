@@ -77,10 +77,11 @@ def recommend_movies_for_user(user_id, movies_df, user_preferences, user_history
 
 def get_movie_details(movie_title, movies_df):
     # Use case-insensitive comparison and strip extra spaces
-    movie = movies_df[movies_df['title'].str.strip().str.lower() == movie_title.strip().lower()]
+    movie_title = movie_title.strip().lower()
+    movie = movies_df[movies_df['title'].str.strip().str.lower() == movie_title]
+    
     if not movie.empty:
-        genre_data = eval(movie['genres'].values[0])
-        genres = extract_genre_names(genre_data)
+        genres = movie['genres'].values[0]
         formatted_genres = ', '.join(genres)
         return movie[['title', formatted_genres, 'original_language', 'popularity', 'release_date']]
     else:
