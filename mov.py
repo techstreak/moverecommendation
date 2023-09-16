@@ -88,8 +88,11 @@ def get_movie_details(movie_title, movies_df):
     if not genre_data:
         return None
 
-    genres = extract_genre_names(genre_data)
-    formatted_genres = ', '.join(genres)
+    try:
+        genres = extract_genre_names(genre_data)
+        formatted_genres = ', '.join(genres)
+    except (json.JSONDecodeError, TypeError):
+        formatted_genres = "N/A"
     
     return movie[['title', formatted_genres, 'original_language', 'popularity', 'release_date']]
 
