@@ -8,15 +8,11 @@ import json
 movies_df = pd.read_csv("tmdb_5000_movies.csv")
 
 def extract_genre_names(genre_data):
-    try:
-        genre_list = json.loads(genre_data.replace("'", "\""))
-        return [genre['name'] for genre in genre_list]
-    except (json.JSONDecodeError, TypeError):
-        return []
+    genre_list = json.loads(genre_data.replace("'", "\""))
+    return [genre['name'] for genre in genre_list]
 
 # Convert the 'genres' column to list of genre names
 movies_df['genres'] = movies_df['genres'].apply(extract_genre_names)
-recommended_movies = recommend_movies(user_id, movies_df, user_preferences, user_history, st.session_state.current_page, movies_per_page)
 
 # Connect to the SQLite database
 conn = sqlite3.connect('user_history.db')
@@ -56,10 +52,32 @@ def get_user_history(user_id):
     cursor.execute("SELECT movie_title FROM user_history WHERE user_id = ?", (user_id,))
     return [row[0] for row in cursor.fetchall()]
 
+def recommend_movies_for_user(user_id, movies_df, user_preferences, user_history, current_page, movies_per_page):
+    watched_movies = user_history
+    unseen_movies = movies_df[~movies_df['title'].isin(watched_movies)]
+
+    user_profile = user_preferences.get(user_id, [])
+    preferred_genres = set(user_profile)
+
+    # Calculate movie scores based on user profile and filter by preferred genres
+    unseen_movies['score'] = unseen_movies.apply(
+        lambda row: sum(1 for genre in preferred_genres if genre in row['genres']) if preferred_genres else 0,
+        axis=1
+    )
+
+    # Sort by score in descending order
+    recommended_movies = unseen_movies.sort_values(by='score', ascending=False)
+
+    # Get a subset of recommended movies for the current page
+    start_idx = (current_page - 1) * movies_per_page
+    end_idx = start_idx + movies_per_page
+    movies_to_display = recommended_movies[start_idx:end_idx]
+
+    return movies_to_display
+
 def get_movie_details(movie_title, movies_df):
     # Use case-insensitive comparison and strip extra spaces
     movie = movies_df[movies_df['title'].str.strip().str.lower() == movie_title.strip().lower()]
-    
     if not movie.empty:
         genre_data = eval(movie['genres'].values[0])
         genres = extract_genre_names(genre_data)
@@ -67,28 +85,6 @@ def get_movie_details(movie_title, movies_df):
         return movie[['title', formatted_genres, 'original_language', 'popularity', 'release_date']]
     else:
         return None
-
-def get_movie_details(movie_title, movies_df):
-    # Use case-insensitive comparison and strip extra spaces
-    movie_title = movie_title.strip().lower()
-    movie = movies_df[movies_df['title'].str.strip().str.lower() == movie_title]
-
-    if movie.empty:
-        return None
-
-    genre_data = movie['genres'].values[0]
-    
-    if not genre_data:
-        return None
-
-    try:
-        genres = extract_genre_names(genre_data)
-        formatted_genres = ', '.join(genres)
-    except Exception as e:
-        formatted_genres = "N/A"
-        st.warning(f"Error processing genres for '{movie_title}': {str(e)}")
-    
-    return movie[['title', formatted_genres, 'original_language', 'popularity', 'release_date']]
 
 # Create a Streamlit web app
 st.title("Movie Recommendation System")
