@@ -55,28 +55,32 @@ def get_user_history(user_id):
     cursor.execute("SELECT movie_title FROM user_history WHERE user_id = ?", (user_id,))
     return [row[0] for row in cursor.fetchall()]
 
-def recommend_movies_for_user(user_id, movies_df, user_preferences, user_history, current_page, movies_per_page):
-    watched_movies = user_history
-    unseen_movies = movies_df[~movies_df['title'].isin(watched_movies)]
+def get_movie_details(movie_title, movies_df):
+    # Use case-insensitive comparison and strip extra spaces
+    movie_title = movie_title.strip().lower()
+    movie = movies_df[movies_df['title'].str.strip().str.lower() == movie_title]
 
-    user_profile = user_preferences.get(user_id, [])
-    preferred_genres = set(user_profile)
+    if movie.empty:
+        return None
 
-    # Calculate movie scores based on user profile and filter by preferred genres
-    unseen_movies['score'] = unseen_movies.apply(
-        lambda row: sum(1 for genre in preferred_genres if genre in row['genres']) if preferred_genres else 0,
-        axis=1
-    )
+    genre_data = movie['genres'].values[0]
+    
+    if not genre_data:
+        return None
 
-    # Sort by score in descending order
-    recommended_movies = unseen_movies.sort_values(by='score', ascending=False)
-
-    # Get a subset of recommended movies for the current page
-    start_idx = (current_page - 1) * movies_per_page
-    end_idx = start_idx + movies_per_page
-    movies_to_display = recommended_movies[start_idx:end_idx]
-
-    return movies_to_display
+    try:
+        genres = extract_genre_names(genre_data)
+        formatted_genres = ', '.join(genres)
+    except Exception as e:
+        formatted_genres = "N/A"
+        st.warning(f"Error processing genres for '{movie_title}': {str(e)}")
+    
+    # Make sure to access columns that exist in the DataFrame
+    selected_columns = ['title', 'original_language', 'popularity', 'release_date']
+    movie_details = movie[selected_columns]
+    movie_details['genres'] = formatted_genres
+    
+    return movie_details
 
 def get_movie_details(movie_title, movies_df):
     # Use case-insensitive comparison and strip extra spaces
