@@ -5,7 +5,6 @@ import sqlite3
 import json
 
 # Load movie data
-credits_df = pd.read_csv("tmdb_5000_credits.csv")
 movies_df = pd.read_csv("tmdb_5000_movies.csv")
 
 def extract_genre_names(genre_data):
