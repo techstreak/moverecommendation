@@ -64,7 +64,7 @@ def get_movie_details(movie_title, movies_df):
         return None
 
     genre_data = movie['genres'].values[0]
-    
+
     if not genre_data:
         return None
 
@@ -74,7 +74,7 @@ def get_movie_details(movie_title, movies_df):
     except Exception as e:
         formatted_genres = "N/A"
         st.warning(f"Error processing genres for '{movie_title}': {str(e)}")
-    
+
     # Prepare a dictionary with movie details
     movie_details = {
         'Title': movie_title,
@@ -83,7 +83,7 @@ def get_movie_details(movie_title, movies_df):
         'Popularity': movie['popularity'].values[0],
         'Release Date': movie['release_date'].values[0],
     }
-    
+
     return movie_details
 
 def get_movie_details(movie_title, movies_df):
