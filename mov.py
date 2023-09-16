@@ -16,6 +16,7 @@ def extract_genre_names(genre_data):
 
 # Convert the 'genres' column to list of genre names
 movies_df['genres'] = movies_df['genres'].apply(extract_genre_names)
+recommended_movies = recommend_movies(user_id, movies_df, user_preferences, user_history, st.session_state.current_page, movies_per_page)
 
 # Connect to the SQLite database
 conn = sqlite3.connect('user_history.db')
